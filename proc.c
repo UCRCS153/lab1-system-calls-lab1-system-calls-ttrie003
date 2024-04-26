@@ -225,12 +225,13 @@ fork(void)
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
 void
-exit(void)
+exit(int status)
 {
   struct proc *curproc = myproc();
   struct proc *p;
   int fd;
 
+  curproc->exit_status = status;
   if(curproc == initproc)
     panic("init exiting");
 
@@ -270,7 +271,7 @@ exit(void)
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
 int
-wait(void)
+wait(int *status)
 {
   struct proc *p;
   int havekids, pid;
@@ -287,6 +288,9 @@ wait(void)
       if(p->state == ZOMBIE){
         // Found one.
         pid = p->pid;
+        if (status != (int *)0) {
+          *status = p->exit_status;
+        }
         kfree(p->kstack);
         p->kstack = 0;
         freevm(p->pgdir);
@@ -530,5 +534,17 @@ procdump(void)
         cprintf(" %p", pc[i]);
     }
     cprintf("\n");
+  }
+}
+
+int getsiblings(void) 
+{
+  struct proc *p;
+  int pid = myproc()->pid;
+
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->parent == myproc()->parent && p->pid != pid) {
+      cprintf("%d\n", p->pid);
+    }
   }
 }
