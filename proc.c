@@ -578,11 +578,11 @@ int waitpid(int pid, int *status, int options)
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
-        release(&ptable.lock);
         if (status != (int *)0) {
           *status = p->exit_status;
         }
         p->exit_status = 0;
+        release(&ptable.lock);
         return child;
       }
     }
@@ -593,5 +593,7 @@ int waitpid(int pid, int *status, int options)
     return -1;
   }
 
-  sleep(currproc, &ptable.lock);
+  release(&ptable.lock);
+  return -1;
+  //sleep(currproc, &ptable.lock);
 }
