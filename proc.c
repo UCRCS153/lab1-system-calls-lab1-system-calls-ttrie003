@@ -541,7 +541,6 @@ int getsiblings(void)
 {
   struct proc *p;
   int pid = myproc()->parent->pid;
-  struct proc *p;
   acquire(&ptable.lock);
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if (p->parent == myproc()->parent && p->pid != pid) {
