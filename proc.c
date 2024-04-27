@@ -578,14 +578,18 @@ int waitpid(int pid, int *status, int options)
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
-        release(&ptable.lock);
-        return child;
+        //release(&ptable.lock);
+        break;
       }
     }
   }
+  release(&ptable.lock);
+
+  if (child != -1) {
+    return child;
+  }
 
   if (!havekids || myproc()->killed) {
-    release(&ptable.lock);
     return -1;
   }
 
