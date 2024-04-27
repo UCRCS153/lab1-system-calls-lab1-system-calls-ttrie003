@@ -575,10 +575,10 @@ int waitpid(int pid, int *status, int options)
         found = 1;
         if (p->state == ZOMBIE) {
           // Found one.
-          int correct_pid = p->pid;
           if (status != (int*) 0) {
             *status = p->exit_status;
           }
+          int correct_pid = p->pid;
           kfree(p->kstack);
           p->kstack = 0;
           freevm(p->pgdir);
@@ -589,18 +589,18 @@ int waitpid(int pid, int *status, int options)
           p->state = UNUSED;
           //int child_status = p->exit_status;
           p->exit_status = 0;
+          release(&ptable.lock);
           return correct_pid;
         }
       }
     }
   }
+  release(&ptable.lock);
 
   if (!found || currproc->killed || pid <= 0) {
-    release(&ptable.lock);
     return -1;
   }
 
   sleep(currproc, &ptable.lock);
-
-  return -1;
+  acquire(&ptable.lock);
 }
