@@ -562,8 +562,8 @@ int waitpid(int pid, int *status, int options)
   struct proc *currproc = myproc();
 
   acquire(&ptable.lock);
-  //for (;;) {
-    //havekids = 0;
+  for (;;) {
+    havekids = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
       if (p->pid != pid)
         continue;
@@ -586,7 +586,7 @@ int waitpid(int pid, int *status, int options)
         return child;
       }
     }
-  //}
+  }
 
   if (!havekids || currproc->killed || pid <= 0) {
     release(&ptable.lock);
