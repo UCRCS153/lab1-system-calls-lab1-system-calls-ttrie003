@@ -540,7 +540,7 @@ procdump(void)
 int getsiblings(void) 
 {
   struct proc *p;
-  int pid = myproc()->pid;
+  int pid = myproc()->parent->pid;
 
   acquire(&ptable.lock);
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
