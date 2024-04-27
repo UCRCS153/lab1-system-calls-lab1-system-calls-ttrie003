@@ -27,8 +27,6 @@ OBJS = \
 	uart.o\
 	vectors.o\
 	vm.o\
-	sys_getsiblings.o\
-	sys_waitpid.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -183,8 +181,6 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
-	getsiblings\
-	waitpid\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
