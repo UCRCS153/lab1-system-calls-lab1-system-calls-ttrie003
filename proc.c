@@ -588,7 +588,7 @@ int waitpid(int pid, int *status, int options)
     }
   }
 
-  if (!havekids || myproc()->killed || pid <= 0) {
+  if (!havekids || currproc->killed || pid <= 0) {
     release(&ptable.lock);
     return -1;
   }
