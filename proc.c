@@ -231,7 +231,7 @@ exit(int status)
   struct proc *p;
   int fd;
 
-  curproc->exit_status = status;
+  //curproc->exit_status = status;
   if(curproc == initproc)
     panic("init exiting");
 
@@ -587,8 +587,9 @@ int waitpid(int pid, int *status, int options)
         if (status != (int*) 0) {
           *status = p->exit_status;
         }
+        int child_status = p->exit_status;
         p->exit_status = 0;
-        return child;
+        return child_status;
       }
     }
   }
