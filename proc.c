@@ -571,7 +571,7 @@ int waitpid(int pid, int *status, int options)
   while (1) {
     havekids = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-      if (p->parent != currproc || p->pid == pid) {
+      if (p->parent != currproc || p->pid != pid) {
         continue;
       }
       havekids = 1;
