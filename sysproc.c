@@ -27,7 +27,11 @@ sys_exit(void)
 int
 sys_wait(void)
 {
-  return wait(0);
+  int *status;
+
+  if (argptr(0, (void*)&status, sizeof(*status)) < 0)
+    return -1;
+  return wait(status);
 }
 
 int
@@ -97,4 +101,15 @@ sys_uptime(void)
 int sys_getsiblings(void)
 {
   return getsiblings();
+}
+
+int sys_waitpid(void)
+{
+  int pid;
+  int *status;
+  int options;
+
+  if (argint(0, &pid) < 0 || argptr(1, (void*)&status, sizeof(*status)) < 0 || argint(2, &options) < 0)
+    return -1;
+  return waitpid(pid, status, options);
 }

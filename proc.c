@@ -548,3 +548,41 @@ int getsiblings(void)
     }
   }
 }
+
+int waitpid(int pid, int *status, int options)
+{
+  struct proc *p;
+  int havekids;
+  int child;
+
+  acquire(&ptable.lock);
+  for (;;) {
+    havekids = 0;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+      if (p->parent != myproc())
+        continue;
+      havekids = 1;
+      if (p->pid == pid && p->state == ZOMBIE) {
+        *status = p->exit_status;
+        child = p->pid;
+        kfree(p->kstack);
+        p->kstack = 0;
+        freevm(p->pgdir);
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        release(&ptable.lock);
+        return child;
+      }
+    }
+  }
+
+  if (!havekids || myproc()->killed) {
+    release(&ptable.lock);
+    return -1;
+  }
+
+  sleep(myproc(), &ptable.lock);
+}
