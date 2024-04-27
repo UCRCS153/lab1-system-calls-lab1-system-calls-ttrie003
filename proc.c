@@ -592,6 +592,7 @@ int waitpid(int pid, int *status, int options)
       if (p->parent != currproc || p->pid == pid) {
         continue;
       }
+    }
   }
   release(&ptable.lock);
 
