@@ -231,7 +231,7 @@ exit(int status)
   struct proc *p;
   int fd;
 
-  //curproc->exit_status = status;
+  curproc->exit_status = status;
   if(curproc == initproc)
     panic("init exiting");
 
@@ -550,14 +550,15 @@ int getsiblings(void)
   }
   release(&ptable.lock);
   
-  return -1;
+  return 0;
 }
 
 int waitpid(int pid, int *status, int options)
 {
   struct proc *p;
-  int havekids;
-  int child;
+  //int havekids;
+  //int child;
+  int found;
   struct proc *currproc = myproc();
 
   acquire(&ptable.lock);
@@ -567,40 +568,39 @@ int waitpid(int pid, int *status, int options)
     return -1;
   }
 
-  for (;;) {
-    havekids = 0;
+  while (1) {
+    found = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-      if (p->parent != currproc)
-        continue;
-      havekids = 1;
-      if (p->pid == pid && p->state == ZOMBIE) {
-        // Found one.
-        child = p->pid;
-        kfree(p->kstack);
-        p->kstack = 0;
-        freevm(p->pgdir);
-        p->pid = 0;
-        p->parent = 0;
-        p->name[0] = 0;
-        p->killed = 0;
-        p->state = UNUSED;
-        if (status != (int*) 0) {
-          *status = p->exit_status;
+      if (p->parent == currproc && p->pid == pid) {
+        found = 1;
+        if (p->state == ZOMBIE) {
+          // Found one.
+          int correct_pid = p->pid;
+          if (status != (int*) 0) {
+            *status = p->exit_status;
+          }
+          kfree(p->kstack);
+          p->kstack = 0;
+          freevm(p->pgdir);
+          p->pid = 0;
+          p->parent = 0;
+          p->name[0] = 0;
+          p->killed = 0;
+          p->state = UNUSED;
+          //int child_status = p->exit_status;
+          p->exit_status = 0;
+          return correct_pid;
         }
-        int child_status = p->exit_status;
-        p->exit_status = 0;
-        return child_status;
       }
     }
   }
 
-  if (!havekids || currproc->killed || pid <= 0) {
+  if (!found || currproc->killed || pid <= 0) {
     release(&ptable.lock);
     return -1;
   }
 
-  release(&ptable.lock);
-  return -1;
-
   sleep(currproc, &ptable.lock);
+
+  return -1;
 }
