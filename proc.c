@@ -559,16 +559,20 @@ int waitpid(int pid, int *status, int options)
   struct proc *p;
   int havekids;
   int child;
+  struct proc *currproc = myproc();
 
   acquire(&ptable.lock);
   for (;;) {
     havekids = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-      if (p->parent != myproc())
+      if (p->pid != pid)
         continue;
       havekids = 1;
       if (p->pid == pid && p->state == ZOMBIE) {
-        *status = p->exit_status;
+        if (status != (int *)0)
+          *status = p->exit_status;
+        p->exit_status = 0;
+        
         child = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
@@ -578,18 +582,14 @@ int waitpid(int pid, int *status, int options)
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
-        //release(&ptable.lock);
-        break;
+        release(&ptable.lock);
+        return child;
       }
     }
   }
-  release(&ptable.lock);
 
-  if (child != -1) {
-    return child;
-  }
-
-  if (!havekids || myproc()->killed) {
+  if (!havekids || myproc()->killed || pid <= 0) {
+    release(&ptable.lock);
     return -1;
   }
 
