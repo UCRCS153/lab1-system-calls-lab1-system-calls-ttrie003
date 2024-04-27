@@ -543,10 +543,10 @@ int getsiblings(void)
   int pid = myproc()->pid;
 
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-    if (p->parent == myproc()->parent && p->pid != pid) {
-      cprintf("%d\n", p->pid);
-    }
+    if (p->parent == myproc()->parent && p->pid != pid)
+      return p->pid;
   }
+  return -1;
 }
 
 int waitpid(int pid, int *status, int options)
