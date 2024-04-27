@@ -553,7 +553,7 @@ int getsiblings(void)
   return -1;
 }
 
-int waitpid(int pid, int *status, int options)
+int waitpid(int pid, int *status)
 {
   struct proc *p;
   int havekids;
@@ -574,9 +574,6 @@ int waitpid(int pid, int *status, int options)
         continue;
       havekids = 1;
       if (p->pid == pid && p->state == ZOMBIE) {
-        while (p->state != ZOMBIE) {
-          sleep(currproc, &ptable.lock);
-        }
         // Found one.
         child = p->pid;
         kfree(p->kstack);
@@ -591,7 +588,6 @@ int waitpid(int pid, int *status, int options)
           *status = p->exit_status;
         }
         p->exit_status = 0;
-        release(&ptable.lock);
         return child;
       }
     }

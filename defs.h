@@ -121,7 +121,7 @@ int             wait(int *status);
 void            wakeup(void*);
 void            yield(void);
 int             getsiblings(void);
-int             waitpid(int pid, int *status, int options);
+int             waitpid(int pid, int *status);
 
 
 // swtch.S

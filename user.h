@@ -24,7 +24,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int getsiblings(void);
-int waitpid(int, int*, int);
+int waitpid(int, int*);
 
 // ulib.c
 int stat(const char*, struct stat*);
