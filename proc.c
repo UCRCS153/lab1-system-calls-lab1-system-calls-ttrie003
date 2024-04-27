@@ -561,15 +561,23 @@ int waitpid(int pid, int *status, int options)
   struct proc *currproc = myproc();
 
   acquire(&ptable.lock);
+
+  if (pid <= 0 || status == 0) {
+    release(&ptable.lock);
+    return -1;
+  }
+
   for (;;) {
     havekids = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-      if (p->parent == currproc)
-        havekids = 1;
-      if (p->pid == pid) {
-        while (p->state != ZOMBIE) {
-          sleep(currproc, &ptable.lock);
-        }
+      if (p->parent != currproc)
+        continue;
+      
+      havekids = 1;
+      if (p->pid == pid && p->state == ZOMBIE) {
+        //while (p->state != ZOMBIE) {
+        //  sleep(currproc, &ptable.lock);
+        //}
         // Found one.
         child = p->pid;
         kfree(p->kstack);
@@ -595,7 +603,12 @@ int waitpid(int pid, int *status, int options)
     return -1;
   }
   
-  sleep(currproc, &ptable.lock);
+  if (pid > 0) {
+    sleep(currproc, &ptable.lock);
+  }
+  else {
+    sleep(currproc, &ptable.lock);
+  }
 
   release(&ptable.lock);
   return -1;
