@@ -561,37 +561,38 @@ int waitpid(int pid, int *status, int options)
   int found;
   struct proc *currproc = myproc();
 
-/*
+
   if (pid <= 0 || status == 0) {
     release(&ptable.lock);
     return -1;
   }
-*/
+
 
   acquire(&ptable.lock);
   while (1) {
+    found = 0;
     havekids = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
       if (p->parent != currproc || p->pid != pid) {
         continue;
       }
       havekids = 1;
-      if (p->pid == pid) {
+      if (p->pid == pid && p->parent == currproc) {
         found = 1;
         if (p->state == ZOMBIE) {
           child = p->pid;
           kfree(p->kstack);
           p->kstack = 0;
           freevm(p->pgdir);
+          if (status != 0) {
+            *status = p->exit_status;
+          }
           p->pid = 0;
           p->parent = 0;
           p->name[0] = 0;
           p->killed = 0;
           p->state = UNUSED;
-          if (status != 0) {
-            *status = p->exit_status;
-          }
-          //p->exit_status = 0;
+          p->exit_status = 0;
           release(&ptable.lock);
           return child;
         }
