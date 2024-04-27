@@ -288,9 +288,6 @@ wait(int *status)
       if(p->state == ZOMBIE){
         // Found one.
         pid = p->pid;
-        if (status != (int *)0) {
-          *status = p->exit_status;
-        }
         kfree(p->kstack);
         p->kstack = 0;
         freevm(p->pgdir);
@@ -300,6 +297,9 @@ wait(int *status)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
+        if (status != (int *)0) {
+          *status = p->exit_status;
+        }
         return pid;
       }
     }
@@ -541,7 +541,7 @@ int getsiblings(void)
 {
   struct proc *p;
   int pid = myproc()->parent->pid;
-
+  struct proc *p;
   acquire(&ptable.lock);
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if (p->parent == myproc()->parent && p->pid != pid) {
@@ -580,8 +580,9 @@ int waitpid(int pid, int *status, int options)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
-        if (status != (int *)0)
+        if (status != (int *)0) {
           *status = p->exit_status;
+        }
         p->exit_status = 0;
         return child;
       }
