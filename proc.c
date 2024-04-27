@@ -568,11 +568,11 @@ int waitpid(int pid, int *status, int options)
       if (p->pid != pid)
         continue;
       havekids = 1;
-      if (p->pid == pid && p->state == ZOMBIE) {
+      if (p->state == ZOMBIE) {
         if (status != (int *)0)
           *status = p->exit_status;
         p->exit_status = 0;
-        
+
         child = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
@@ -593,5 +593,5 @@ int waitpid(int pid, int *status, int options)
     return -1;
   }
 
-  sleep(myproc(), &ptable.lock);
+  sleep(currproc, &ptable.lock);
 }
