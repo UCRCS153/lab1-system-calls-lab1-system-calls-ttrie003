@@ -572,12 +572,11 @@ int waitpid(int pid, int *status, int options)
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
       if (p->parent != currproc)
         continue;
-      
       havekids = 1;
       if (p->pid == pid && p->state == ZOMBIE) {
-        //while (p->state != ZOMBIE) {
-        //  sleep(currproc, &ptable.lock);
-        //}
+        while (p->state != ZOMBIE) {
+          sleep(currproc, &ptable.lock);
+        }
         // Found one.
         child = p->pid;
         kfree(p->kstack);
@@ -602,14 +601,9 @@ int waitpid(int pid, int *status, int options)
     release(&ptable.lock);
     return -1;
   }
-  
-  if (pid > 0) {
-    sleep(currproc, &ptable.lock);
-  }
-  else {
-    sleep(currproc, &ptable.lock);
-  }
 
   release(&ptable.lock);
   return -1;
+
+  sleep(currproc, &ptable.lock);
 }
