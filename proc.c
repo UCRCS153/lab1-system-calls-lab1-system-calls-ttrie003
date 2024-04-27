@@ -556,9 +556,9 @@ int getsiblings(void)
 int waitpid(int pid, int *status, int options)
 {
   struct proc *p;
-  //int havekids;
-  //int child;
-  int found;
+  int havekids;
+  int child;
+  //int found;
   struct proc *currproc = myproc();
 
   acquire(&ptable.lock);
@@ -569,38 +569,36 @@ int waitpid(int pid, int *status, int options)
   }
 
   while (1) {
-    found = 0;
+    havekids = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-      if (p->parent == currproc && p->pid == pid) {
-        found = 1;
-        if (p->state == ZOMBIE) {
-          // Found one.
-          if (status != (int*) 0) {
-            *status = p->exit_status;
-          }
-          int correct_pid = p->pid;
-          kfree(p->kstack);
-          p->kstack = 0;
-          freevm(p->pgdir);
-          p->pid = 0;
-          p->parent = 0;
-          p->name[0] = 0;
-          p->killed = 0;
-          p->state = UNUSED;
-          //int child_status = p->exit_status;
-          p->exit_status = 0;
-          release(&ptable.lock);
-          return correct_pid;
+      if (p->state == ZOMBIE) {
+        child = p->pid;
+        kfree(p->kstack);
+        p->kstack = 0;
+        freevm(p->pgdir);
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        if (status != 0) {
+          *status = p->exit_status;
         }
+        p->exit_status = 0;
+        release(&ptable.lock);
+        return child;
       }
-    }
+      havekids = 1;
+      if (p->parent != currproc || p->pid == pid) {
+        continue;
+      }
   }
   release(&ptable.lock);
 
-  if (!found || currproc->killed || pid <= 0) {
+  if (!havekids || currproc->killed || pid <= 0) {
     return -1;
   }
 
   sleep(currproc, &ptable.lock);
-  acquire(&ptable.lock);
+  //acquire(&ptable.lock);
 }
