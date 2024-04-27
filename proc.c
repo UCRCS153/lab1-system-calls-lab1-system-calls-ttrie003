@@ -264,7 +264,6 @@ exit(int status)
 
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
-  release(&ptable.lock);
   sched();
   panic("zombie exit");
 }
@@ -562,13 +561,14 @@ int waitpid(int pid, int *status, int options)
   int found;
   struct proc *currproc = myproc();
 
-  acquire(&ptable.lock);
-
+/*
   if (pid <= 0 || status == 0) {
     release(&ptable.lock);
     return -1;
   }
+*/
 
+  acquire(&ptable.lock);
   while (1) {
     havekids = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
@@ -591,7 +591,7 @@ int waitpid(int pid, int *status, int options)
           if (status != 0) {
             *status = p->exit_status;
           }
-          p->exit_status = 0;
+          //p->exit_status = 0;
           release(&ptable.lock);
           return child;
         }
