@@ -553,7 +553,7 @@ int getsiblings(void)
   return -1;
 }
 
-int waitpid(int pid, int *status)
+int waitpid(int pid, int *status, int options)
 {
   struct proc *p;
   int havekids;
