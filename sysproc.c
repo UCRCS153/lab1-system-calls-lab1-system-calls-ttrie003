@@ -20,7 +20,7 @@ sys_exit(void)
   if (argint(0, &status) < 0) {
     return -1;
   }
-  myproc()->exit_status = status;
+  //myproc()->exit_status = status;
   exit(status);
   return 0;  // not reached
 }
