@@ -569,10 +569,9 @@ int getsiblings(void)
 int waitpid(int pid, int *status, int options)
 {
   struct proc *p;
-  int havekids;
-  int found;
-
+  int found_process;
   struct proc *currproc = myproc();
+
   if (pid < -1 || status == 0)
   {
     return -1;
@@ -581,17 +580,17 @@ int waitpid(int pid, int *status, int options)
   acquire(&ptable.lock);
   for (;;)
   {
-    //havekids = 0;
-    found = 0;
+    found_process = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
       if (p->pid != pid)
+      {
         continue;
-      found = 1;
+      }
+      found_process = 1;
+
       if (p->state == ZOMBIE)
       {
-        if (status != 0)
-          *status = p->exit_status;
         int dead_pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
@@ -601,16 +600,22 @@ int waitpid(int pid, int *status, int options)
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
+        if (status != 0)
+        {
+          *status = p->exit_status;
+        }
         p->exit_status = 0;
         release(&ptable.lock);
         return dead_pid;
       }
     }
-    if (!found || currproc->killed)
+
+    if (!found_process || currproc->killed)
     {
       release(&ptable.lock);
       return -1;
     }
-    sleep(currproc, &ptable.lock); // Sleep only if no suitable child found
+
+    sleep(currproc, &ptable.lock); // Sleep only if no suitable child was found
   }
 }
