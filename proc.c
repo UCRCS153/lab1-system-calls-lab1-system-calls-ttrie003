@@ -566,6 +566,7 @@ int waitpid(int pid, int *status, int options)
 
   acquire(&ptable.lock);
   for (;;) {
+    havekids = 0;
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
       if (p->parent == currproc && p->pid == pid) {
         havekids = 1;
