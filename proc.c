@@ -579,6 +579,7 @@ int waitpid(int pid, int *status, int options)
         if (p->state == ZOMBIE) {
           if (status != 0) 
             *status = p->exit_status;
+          int dead_pid = p->pid;
           kfree(p->kstack);
           p->kstack = 0;
           freevm(p->pgdir);
@@ -589,7 +590,7 @@ int waitpid(int pid, int *status, int options)
           p->state = UNUSED;
           p->exit_status = 0;
           release(&ptable.lock);
-          return p->pid;
+          return dead_pid;
         }
       }
     }
